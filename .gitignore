@@ -1,0 +1,88 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Local config overrides
+config_local.py
+config.py
+
+# ChromeDriver và Browser (local only - GitHub Actions tự install)
+chromedriver.exe
+chromedriver
+chromedriver-win64/
+chrome.exe
+chrome-dev.exe
+google-chrome-stable
+
+# Temporary files
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Old files và test outputs (chỉ giữ production data trong /data/)
+test_*.csv
+test_*.xlsx
+temp_*.csv
+temp_*.xlsx
+*_old.*
+backup/
+
+# Legacy files từ development phase (không cần thiết cho production)
+step1_tradewheel_scrapping.py
+step2_convert_file_to_xslx.ipynb
+test_driver.py
+test_scraper.py
+tradewheel_scraper_enhanced.py
+tradewheel_scraper_v2.py
+run_scraper.bat
+
+# Old data files (chỉ giữ data mới nhất trong /data/)
+*.csv
+*.xlsx
+!data/*.csv
+!data/*.xlsx
+
+# Batch files và scripts cũ
+*.bat
