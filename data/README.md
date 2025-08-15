@@ -21,4 +21,4 @@ This folder will contain automatically generated scraping results.
 
 ---
 
-*This folder is automatically managed by the scraping workflow.*
+_This folder is automatically managed by the scraping workflow._

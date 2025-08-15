@@ -48,6 +48,7 @@ tradewheel-scraper/
 Go to **Actions** tab → **Tradewheel Auto Scraper** → **Run workflow**
 
 Options:
+
 - `start_page`: Starting page (default: 1)
 - `end_page`: Ending page (default: 15)
 
@@ -71,8 +72,8 @@ Edit `.github/workflows/scrape-tradewheel.yml`:
 ```yaml
 schedule:
   # Every 2 weeks on Monday at 9:00 AM UTC
-  - cron: '0 9 */14 * 1'
-  
+  - cron: "0 9 */14 * 1"
+
   # Other examples:
   # - cron: '0 9 * * 1'      # Every Monday
   # - cron: '0 9 */7 * *'    # Every week
@@ -88,14 +89,14 @@ schedule:
 
 ### Data Structure:
 
-| Column | Description |
-|--------|-------------|
-| country | Buyer's country |
+| Column      | Description              |
+| ----------- | ------------------------ |
+| country     | Buyer's country          |
 | date_posted | When the lead was posted |
-| title | Lead title/heading |
-| url | Direct URL to the lead |
-| bdesc | Cleaned description |
-| crawl_time | When data was scraped |
+| title       | Lead title/heading       |
+| url         | Direct URL to the lead   |
+| bdesc       | Cleaned description      |
+| crawl_time  | When data was scraped    |
 
 ## ⚙️ Configuration
 
@@ -139,13 +140,13 @@ Edit the cron expression in workflow file:
 
 ```yaml
 # Every 2 weeks (current)
-- cron: '0 9 */14 * 1'
+- cron: "0 9 */14 * 1"
 
 # Weekly
-- cron: '0 9 * * 1'
+- cron: "0 9 * * 1"
 
-# Monthly  
-- cron: '0 9 1 * *'
+# Monthly
+- cron: "0 9 1 * *"
 ```
 
 ### Change Page Range:
@@ -157,6 +158,7 @@ Edit the cron expression in workflow file:
 ### Data Storage:
 
 Files are automatically committed to `/data/` folder with:
+
 - Timestamp in filename
 - Git version control
 - 90-day artifact retention
@@ -179,6 +181,7 @@ Files are automatically committed to `/data/` folder with:
 ## 📈 Data History
 
 All scraped data is preserved in the repository with:
+
 - ✅ Git commit history
 - ✅ Timestamped files
 - ✅ Full audit trail
@@ -194,6 +197,7 @@ All scraped data is preserved in the repository with:
 ---
 
 **🎉 Set up once, data flows automatically every 2 weeks!**
+
 - ✅ Configurable parameters
 - ✅ Error handling
 

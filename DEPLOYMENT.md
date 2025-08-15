@@ -49,6 +49,7 @@ git push -u origin main
 ### 5. Verify Automation
 
 The workflow will now run automatically:
+
 - **Every 2 weeks** on Monday at 9:00 AM UTC
 - **Next run**: Check in Actions tab
 
@@ -66,11 +67,9 @@ The workflow will now run automatically:
 
 1. **Workflow Permission Denied**
    - Check Actions are enabled in repository settings
-   
 2. **No Files Generated**
    - Check workflow logs for errors
    - Verify website is accessible
-   
 3. **ChromeDriver Issues**
    - These are auto-handled in GitHub Actions
    - For local testing, update paths in `config.py`
@@ -84,7 +83,7 @@ Navigate to: **Repository** → **Actions** → **Workflow Run** → **Job** →
 ✅ Workflow runs without errors  
 ✅ Excel files appear in `/data/` folder  
 ✅ Files are automatically committed  
-✅ Next run is scheduled correctly  
+✅ Next run is scheduled correctly
 
 ---
 
