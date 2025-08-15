@@ -35,7 +35,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Install Chrome
+      - name: Install Chrome and ChromeDriver
         run: |
           # Install Chrome
           wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
@@ -43,13 +43,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y google-chrome-stable
 
-      - name: Setup ChromeDriver
-        uses: nanasess/setup-chromedriver@v2
-
-      - name: Verify Chrome and ChromeDriver
-        run: |
-          google-chrome --version
-          chromedriver --version
+          # Install ChromeDriver
+          CHROME_VERSION=$(google-chrome --version | cut -d " " -f3 | cut -d "." -f1)
+          CHROMEDRIVER_VERSION=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_VERSION")
+          wget -O /tmp/chromedriver.zip "https://chromedriver.storage.googleapis.com/$CHROMEDRIVER_VERSION/chromedriver_linux64.zip"
+          sudo unzip /tmp/chromedriver.zip chromedriver -d /usr/local/bin/
+          sudo chmod +x /usr/local/bin/chromedriver
 
       - name: Create data directory
         run: mkdir -p data
