@@ -1,0 +1,167 @@
+{
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "19d2725afe07b808c192ba742255b6e8b76708e712465e7e14f7ea8831695980"
+  },
+  "nodes": [
+    {
+      "parameters": {
+        "path": "tradewheel-scrape-completed",
+        "options": {
+          "noResponseBody": false
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [64, 48],
+      "id": "34c59a69-4d8a-4dfc-b0cb-1f4cc34f6815",
+      "name": "Tradewheel Scrape Completed",
+      "webhookId": "tradewheel-scrape-completed"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "fileName",
+              "value": "={{ $json.file_name }}"
+            },
+            {
+              "name": "scrapeDate",
+              "value": "={{ $json.scrape_date }}"
+            },
+            {
+              "name": "githubViewUrl",
+              "value": "={{ $json.github_view_url }}"
+            },
+            {
+              "name": "downloadUrl",
+              "value": "={{ $json.download_url }}"
+            },
+            {
+              "name": "zaloMessage",
+              "value": "=🎉 Tradewheel Data mới đã sẵn sàng!\n\n📊 File: {{ $json.file_name }}\n📅 Ngày scrape: {{ $json.scrape_date }}\n\n🔗 Xem trên GitHub: {{ $json.github_view_url }}\n⬇️ Tải trực tiếp: {{ $json.download_url }}\n\n📈 Dữ liệu được cập nhật tự động mỗi 2 tuần"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [288, 80],
+      "id": "5c23b841-92c6-4f13-ba51-42838bde079b",
+      "name": "Process File URLs"
+    },
+    {
+      "parameters": {
+        "threadId": "4949718062955679864",
+        "message": "={{ $json.zaloMessage }}",
+        "urgency": 1,
+        "quote": {},
+        "mentions": {}
+      },
+      "type": "n8n-nodes-thong-zalo-test-trial.zaloSendMessage",
+      "typeVersion": 4,
+      "position": [448, -16],
+      "id": "464f9a05-3240-4285-94d4-913f8ba27592",
+      "name": "Send Link to Tradewheel File",
+      "credentials": {
+        "zaloApi": {
+          "id": "VeKOhGGOdMDhUB9S",
+          "name": "Zalo Advantage Logistics (84345988220)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "success",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [288, 240],
+      "id": "check-success-status",
+      "name": "Check Success Status"
+    },
+    {
+      "parameters": {
+        "threadId": "4949718062955679864",
+        "message": "⚠️ Tradewheel scraping có vấn đề!\n\n❌ Status: {{ $json.status || 'Unknown' }}\n📅 Thời gian: {{ $json.scrape_date }}\n\n🔍 Vui lòng kiểm tra GitHub Actions để biết chi tiết.",
+        "urgency": 2,
+        "quote": {},
+        "mentions": {}
+      },
+      "type": "n8n-nodes-thong-zalo-test-trial.zaloSendMessage",
+      "typeVersion": 4,
+      "position": [448, 320],
+      "id": "send-error-notification",
+      "name": "Send Error Notification",
+      "credentials": {
+        "zaloApi": {
+          "id": "VeKOhGGOdMDhUB9S",
+          "name": "Zalo Advantage Logistics (84345988220)"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Tradewheel Scrape Completed": {
+      "main": [
+        [
+          {
+            "node": "Check Success Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process File URLs": {
+      "main": [
+        [
+          {
+            "node": "Send Link to Tradewheel File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Success Status": {
+      "main": [
+        [
+          {
+            "node": "Process File URLs",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Error Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {}
+}

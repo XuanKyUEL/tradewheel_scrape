@@ -83,6 +83,35 @@ jobs:
             git push
           fi
 
+      - name: Notify n8n webhook
+        if: success()
+        run: |
+          # Lấy tên file Excel đã tạo
+          FILE_NAME=$(ls data/*.xlsx 2>/dev/null | head -1 | xargs basename || echo "")
+          SCRAPE_DATE=$(date +'%Y-%m-%d %H:%M:%S')
+          SCRAPE_COUNT=$(ls data/*.xlsx 2>/dev/null | wc -l || echo "0")
+
+          if [ ! -z "$FILE_NAME" ]; then
+            echo "📊 Found Excel file: $FILE_NAME"
+            
+            # Gọi n8n webhook với thông tin file
+            curl -X POST "${{ secrets.N8N_WEBHOOK_URL }}" \
+              -H "Content-Type: application/json" \
+              -d '{
+                "scrape_date": "'"$SCRAPE_DATE"'",
+                "file_name": "'"$FILE_NAME"'",
+                "file_count": '"$SCRAPE_COUNT"',
+                "status": "success",
+                "repository": "XuanKyUEL/tradewheel_scrape",
+                "github_view_url": "https://github.com/XuanKyUEL/tradewheel_scrape/blob/main/data/'"$FILE_NAME"'",
+                "download_url": "https://github.com/XuanKyUEL/tradewheel_scrape/raw/main/data/'"$FILE_NAME"'"
+              }' || echo "⚠️ Failed to notify n8n webhook"
+          else
+            echo "❌ No Excel file found to notify"
+          fi
+        env:
+          N8N_WEBHOOK_URL: ${{ secrets.N8N_WEBHOOK_URL }}
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
