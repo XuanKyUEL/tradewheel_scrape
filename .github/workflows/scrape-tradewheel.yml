@@ -86,8 +86,15 @@ jobs:
       - name: Notify n8n webhook
         if: success()
         run: |
-          # Lấy tên file Excel đã tạo
-          FILE_NAME=$(ls data/*.xlsx 2>/dev/null | head -1 | xargs basename || echo "")
+          # Ưu tiên lấy file Excel được thay đổi ở commit mới nhất
+          FILE_PATH=$(git log -1 --name-only --pretty="" -- data/*.xlsx | head -1 || echo "")
+          if [ -n "$FILE_PATH" ] && [ -f "$FILE_PATH" ]; then
+            FILE_NAME=$(basename "$FILE_PATH")
+          else
+            # Fallback: lấy file mới nhất theo thời gian sửa đổi
+            # Tránh chọn nhầm theo thứ tự chữ cái (vd: 08_* trước 09_*)
+            FILE_NAME=$(ls -t data/*.xlsx 2>/dev/null | head -1 | xargs basename || echo "")
+          fi
           SCRAPE_DATE=$(date +'%Y-%m-%d %H:%M:%S')
           SCRAPE_COUNT=$(ls data/*.xlsx 2>/dev/null | wc -l || echo "0")
 
