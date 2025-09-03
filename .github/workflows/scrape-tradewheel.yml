@@ -74,6 +74,21 @@ jobs:
           cd src
           python main.py
 
+      - name: Cleanup old data files (older than 60 days)
+        run: |
+          echo "🧹 Cleaning up data files older than 60 days..."
+          # List files to be removed
+          OLD_FILES=$(find data -type f \( -name "*.csv" -o -name "*.xlsx" \) -mtime +60 -print || true)
+          if [ -n "$OLD_FILES" ]; then
+            echo "Files to remove:" 
+            echo "$OLD_FILES"
+            # Remove files
+            find data -type f \( -name "*.csv" -o -name "*.xlsx" \) -mtime +60 -delete || true
+            echo "✅ Removed old files."
+          else
+            echo "No old files to remove."
+          fi
+
       - name: Commit and push results
         run: |
           git config --local user.email "action@github.com"
