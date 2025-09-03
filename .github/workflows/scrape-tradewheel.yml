@@ -17,8 +17,14 @@ on:
         required: false
         default: "15"
 
+  # Cho phép trigger ngay khi push vào main (dùng để chạy tức thời)
+  push:
+    branches: [ main ]
+
 jobs:
   scrape:
+    # Tránh vòng lặp khi push commit tự động "🤖 Auto scrape"
+    if: github.event_name != 'push' || !contains(github.event.head_commit.message, '🤖 Auto scrape')
     runs-on: ubuntu-latest
 
     permissions:
