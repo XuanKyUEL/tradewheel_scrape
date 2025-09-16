@@ -17,7 +17,7 @@
 3. **Nhập thông tin:**
 
    - **Name:** `N8N_WEBHOOK_URL`
-   - **Value:** `https://your-n8n-instance.com/webhook/tradewheel-scrape-completed`
+   - **Value:** `https://8f4hitdl1.tino.page/webhook/tradewheel-scrape-completed`
 
 4. **Click "Add secret"**
 
@@ -26,7 +26,7 @@
 Từ n8n workflow, webhook URL sẽ có dạng:
 
 ```
-https://your-n8n-domain.com/webhook/tradewheel-scrape-completed
+https://8f4hitdl1.tino.page/webhook/tradewheel-scrape-completed
 ```
 
 ## ✅ **Verify setup:**

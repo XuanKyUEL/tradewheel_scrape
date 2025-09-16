@@ -20,13 +20,13 @@
 2. **Settings → Secrets and variables → Actions**
 3. **New repository secret**:
    - Name: `N8N_WEBHOOK_URL`
-   - Value: `https://n8n-qviom-u47294.vm.elestio.app/webhook/tradewheel-scrape-completed`
+   - Value: `https://8f4hitdl1.tino.page/webhook/tradewheel-scrape-completed`
 
 ## 🎯 Bước 4: Test Webhook
 
 ### Manual Test từ Terminal:
 ```powershell
-curl -X POST "https://n8n-qviom-u47294.vm.elestio.app/webhook/tradewheel-scrape-completed" `
+curl -X POST "https://8f4hitdl1.tino.page/webhook/tradewheel-scrape-completed" `
      -H "Content-Type: application/json" `
      -d '{"status":"success","file_name":"test.xlsx","scrape_date":"2025-08-15","github_view_url":"https://github.com/test","download_url":"https://github.com/test/raw"}'
 ```
