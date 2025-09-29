@@ -5,6 +5,10 @@ on:
     # Chạy mỗi 2 tuần vào thứ 2 lúc 9:00 AM UTC (4:00 PM GMT+7)
     - cron: "0 9 */14 * 1"
 
+  # Cho phép trigger từ n8n hoặc external API
+  repository_dispatch:
+    types: [trigger-scrape]
+
   # Cho phép chạy manual
   workflow_dispatch:
     inputs:
@@ -68,8 +72,8 @@ jobs:
 
       - name: Run scraper
         env:
-          START_PAGE: ${{ github.event.inputs.start_page || '1' }}
-          END_PAGE: ${{ github.event.inputs.end_page || '15' }}
+          START_PAGE: ${{ github.event.inputs.start_page || github.event.client_payload.start_page || '1' }}
+          END_PAGE: ${{ github.event.inputs.end_page || github.event.client_payload.end_page || '15' }}
         run: |
           cd src
           python main.py
