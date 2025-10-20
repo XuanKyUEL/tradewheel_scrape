@@ -2,8 +2,8 @@ name: Tradewheel Auto Scraper
 
 on:
   schedule:
-    # Chạy mỗi 2 tuần vào thứ 2 lúc 9:00 AM UTC (4:00 PM GMT+7)
-    - cron: "0 9 */14 * 1"
+    # Chạy mỗi 14 ngày lúc 9:00 AM UTC (4:00 PM GMT+7)
+    - cron: "0 9 */14 * *"
 
   # Cho phép trigger từ n8n hoặc external API
   repository_dispatch:
