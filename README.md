@@ -8,6 +8,7 @@
 - ✅ **Automatic Excel export** with formatting
 - ✅ **Data stored in repository** with version control
 - ✅ **Anti-detection measures** (random delays, proper headers)
+- ✅ **URL-based deduplication** - automatically removes duplicates from previous scrapes
 - ✅ **Duplicate removal** and data cleaning
 - ✅ **Manual triggering** support
 - ✅ **Local development** support
@@ -97,6 +98,17 @@ schedule:
 | url         | Direct URL to the lead   |
 | bdesc       | Cleaned description      |
 | crawl_time  | When data was scraped    |
+
+### Deduplication:
+
+The scraper **automatically removes duplicates** based on the URL column:
+
+- 🔍 Scans all previous CSV files in `/data/` directory
+- 🗑️ Removes entries with URLs that already exist
+- ✨ Saves only new, unique leads in each run
+- 📊 Reports deduplication statistics
+
+For more details, see [DEDUPLICATION.md](DEDUPLICATION.md)
 
 ## ⚙️ Configuration
 

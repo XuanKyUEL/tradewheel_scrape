@@ -91,6 +91,75 @@ class TradewheelScraper:
         text = re.sub(r'\s+', ' ', text).strip()
         return text
     
+    def load_previous_urls(self):
+        """Load all URLs from previous scraped data files"""
+        previous_urls = set()
+        
+        # Xác định output directory
+        if self.config['output']["output_directory"]:
+            output_dir = Path(self.config['output']["output_directory"])
+        else:
+            output_dir = Path.cwd()
+        
+        # Kiểm tra nếu directory tồn tại
+        if not output_dir.exists():
+            print("ℹ️ No previous data directory found")
+            return previous_urls
+        
+        # Đọc tất cả các file CSV trong directory
+        csv_files = list(output_dir.glob("*.csv"))
+        
+        if not csv_files:
+            print("ℹ️ No previous CSV files found")
+            return previous_urls
+        
+        print(f"📂 Found {len(csv_files)} previous CSV files")
+        
+        for csv_file in csv_files:
+            try:
+                with open(csv_file, 'r', encoding='utf-8-sig') as f:
+                    reader = csv.DictReader(f)
+                    for row in reader:
+                        if 'url' in row and row['url']:
+                            previous_urls.add(row['url'])
+            except Exception as e:
+                print(f"⚠️ Error reading {csv_file.name}: {e}")
+                continue
+        
+        print(f"✅ Loaded {len(previous_urls)} unique URLs from previous data")
+        return previous_urls
+    
+    def deduplicate_data(self, previous_urls=None):
+        """Remove duplicate entries based on URL column"""
+        if not self.results:
+            print("ℹ️ No data to deduplicate")
+            return 0
+        
+        original_count = len(self.results)
+        
+        # Load previous URLs if not provided
+        if previous_urls is None:
+            previous_urls = self.load_previous_urls()
+        
+        # Filter out duplicates
+        deduplicated_results = []
+        duplicates_found = 0
+        
+        for item in self.results:
+            url = item.get('url', '')
+            if url and url in previous_urls:
+                duplicates_found += 1
+            else:
+                deduplicated_results.append(item)
+                if url:  # Add to set to prevent intra-batch duplicates
+                    previous_urls.add(url)
+        
+        self.results = deduplicated_results
+        new_count = len(self.results)
+        
+        print(f"🔍 Deduplication: {original_count} → {new_count} ({duplicates_found} duplicates removed)")
+        return duplicates_found
+    
     def setup_driver(self):
         """Thiết lập Chrome WebDriver"""
         print("🔧 Đang thiết lập WebDriver...")
@@ -326,6 +395,13 @@ class TradewheelScraper:
                 print("❌ Không thu thập được dữ liệu nào!")
                 return False, None, 0
             
+            # Deduplicate against previous data
+            self.deduplicate_data()
+            
+            if len(self.results) == 0:
+                print("❌ Không có dữ liệu mới sau khi loại bỏ duplicate!")
+                return False, None, 0
+            
             # Generate filenames
             csv_file, excel_file = self.generate_filenames()
             
@@ -346,11 +422,11 @@ class TradewheelScraper:
                 
                 print(f"\n🎉 HOÀN THÀNH!")
                 print(f"📁 File Excel: {excel_file}")
-                print(f"📊 Tổng leads: {total_leads}")
-                return True, excel_file, total_leads
+                print(f"📊 Unique leads saved: {len(self.results)}")
+                return True, excel_file, len(self.results)
             else:
                 print(f"⚠️ Giữ lại file CSV: {csv_file}")
-                return False, csv_file, total_leads
+                return False, csv_file, len(self.results)
                 
         except Exception as e:
             print(f"❌ Lỗi trong quá trình scraping: {e}")
