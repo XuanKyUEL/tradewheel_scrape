@@ -23,6 +23,13 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from pathlib import Path
 
+try:
+    from selenium_stealth import stealth
+    STEALTH_AVAILABLE = True
+except ImportError:
+    STEALTH_AVAILABLE = False
+    print("⚠️ selenium-stealth not available, using basic stealth mode")
+
 class TradewheelScraper:
     """Class chính để scrape dữ liệu từ Tradewheel"""
     
@@ -175,7 +182,10 @@ class TradewheelScraper:
         if os.path.exists(chrome_config["binary_location"]):
             options.binary_location = chrome_config["binary_location"]
         
+        # Enhanced user agent
         options.add_argument(f"user-agent={chrome_config['user_agent']}")
+        
+        # Anti-detection arguments
         options.add_argument("--disable-blink-features=AutomationControlled")
         options.add_argument("--disable-dev-shm-usage")
         options.add_argument("--no-sandbox")
@@ -184,15 +194,24 @@ class TradewheelScraper:
         options.add_argument("--disable-web-security")
         options.add_argument("--disable-features=VizDisplayCompositor")
         options.add_argument("--window-size=1920,1080")
+        options.add_argument("--start-maximized")
         options.add_argument("--lang=en-US,en")
-        options.add_experimental_option("excludeSwitches", ["enable-automation"])
+        options.add_argument("--disable-blink-features")
+        options.add_argument("--disable-infobars")
+        options.add_argument("--ignore-certificate-errors")
+        options.add_argument("--allow-running-insecure-content")
+        
+        # Experimental options
+        options.add_experimental_option("excludeSwitches", ["enable-automation", "enable-logging"])
         options.add_experimental_option("useAutomationExtension", False)
         options.add_experimental_option(
             "prefs",
             {
                 "credentials_enable_service": False,
                 "profile.password_manager_enabled": False,
-                "intl.accept_languages": "en-US,en"
+                "intl.accept_languages": "en-US,en",
+                "profile.default_content_setting_values.notifications": 2,
+                "profile.managed_default_content_settings.images": 1
             }
         )
         
@@ -220,18 +239,59 @@ class TradewheelScraper:
         """Reduce automation fingerprints to avoid Cloudflare blocks"""
         if not self.driver:
             return
+        
+        # Use selenium-stealth if available
+        if STEALTH_AVAILABLE:
+            try:
+                stealth(self.driver,
+                    languages=["en-US", "en"],
+                    vendor="Google Inc.",
+                    platform="Win32",
+                    webgl_vendor="Intel Inc.",
+                    renderer="Intel Iris OpenGL Engine",
+                    fix_hairline=True,
+                )
+                print("✅ Selenium-stealth applied")
+            except Exception as e:
+                print(f"⚠️ Selenium-stealth error: {e}")
+        
+        # Additional CDP commands for stealth
         try:
             self.driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {
                 "source": """
+                    // Overwrite the `navigator.webdriver` property
                     Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
-                    Object.defineProperty(navigator, 'platform', {get: () => 'Win32'});
-                    Object.defineProperty(navigator, 'languages', {get: () => ['en-US', 'en']});
-                    Object.defineProperty(navigator, 'plugins', {get: () => [1, 2, 3, 4, 5]});
-                    window.chrome = {runtime: {}};
+                    
+                    // Overwrite the `navigator.plugins` property
+                    Object.defineProperty(navigator, 'plugins', {
+                        get: () => [1, 2, 3, 4, 5]
+                    });
+                    
+                    // Overwrite the `navigator.languages` property
+                    Object.defineProperty(navigator, 'languages', {
+                        get: () => ['en-US', 'en']
+                    });
+                    
+                    // Overwrite the `navigator.platform` property
+                    Object.defineProperty(navigator, 'platform', {
+                        get: () => 'Win32'
+                    });
+                    
+                    // Add chrome property
+                    window.chrome = { runtime: {} };
+                    
+                    // Mock permissions
+                    const originalQuery = window.navigator.permissions.query;
+                    window.navigator.permissions.query = (parameters) => (
+                        parameters.name === 'notifications' ?
+                            Promise.resolve({ state: Notification.permission }) :
+                            originalQuery(parameters)
+                    );
                 """
             })
+            print("✅ Custom stealth scripts applied")
         except Exception as e:
-            print(f"⚠️ Không thể thiết lập stealth mode: {e}")
+            print(f"⚠️ Không thể thiết lập custom stealth: {e}")
     
     def debug_page_content(self, page_num, soup):
         """Debug page content when no data is found"""
