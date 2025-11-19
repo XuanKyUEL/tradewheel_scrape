@@ -183,6 +183,18 @@ class TradewheelScraper:
         options.add_argument("--disable-extensions")
         options.add_argument("--disable-web-security")
         options.add_argument("--disable-features=VizDisplayCompositor")
+        options.add_argument("--window-size=1920,1080")
+        options.add_argument("--lang=en-US,en")
+        options.add_experimental_option("excludeSwitches", ["enable-automation"])
+        options.add_experimental_option("useAutomationExtension", False)
+        options.add_experimental_option(
+            "prefs",
+            {
+                "credentials_enable_service": False,
+                "profile.password_manager_enabled": False,
+                "intl.accept_languages": "en-US,en"
+            }
+        )
         
         if chrome_config["headless"]:
             options.add_argument("--headless")
@@ -196,12 +208,30 @@ class TradewheelScraper:
                 service = ChromeService()
                 
             self.driver = webdriver.Chrome(service=service, options=options)
+            self._apply_stealth_mode()
             self.driver.set_page_load_timeout(self.config['scraping']["page_load_timeout"])
             print("✅ WebDriver đã sẵn sàng")
             return True
         except Exception as e:
             print(f"❌ Lỗi thiết lập WebDriver: {e}")
             return False
+
+    def _apply_stealth_mode(self):
+        """Reduce automation fingerprints to avoid Cloudflare blocks"""
+        if not self.driver:
+            return
+        try:
+            self.driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {
+                "source": """
+                    Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
+                    Object.defineProperty(navigator, 'platform', {get: () => 'Win32'});
+                    Object.defineProperty(navigator, 'languages', {get: () => ['en-US', 'en']});
+                    Object.defineProperty(navigator, 'plugins', {get: () => [1, 2, 3, 4, 5]});
+                    window.chrome = {runtime: {}};
+                """
+            })
+        except Exception as e:
+            print(f"⚠️ Không thể thiết lập stealth mode: {e}")
     
     def check_and_close_popup(self):
         """Check for popup and close it if exists"""
@@ -231,6 +261,33 @@ class TradewheelScraper:
         except Exception as e:
             print(f"⚠️ Error handling popup: {e}")
 
+    def _is_cloudflare_challenge(self, page_source):
+        """Detect Cloudflare challenge pages"""
+        keywords = ["Just a moment", "cf-browser-verification", "__cf_chl"]
+        return any(keyword in page_source for keyword in keywords)
+
+    def wait_for_lead_containers(self, url, max_wait=25, max_retries=2):
+        """Wait for lead containers to appear, retrying if Cloudflare blocks"""
+        for attempt in range(max_retries + 1):
+            start_time = time.time()
+            while time.time() - start_time < max_wait:
+                page_source = self.driver.page_source
+                if self._is_cloudflare_challenge(page_source):
+                    print("⚠️ Cloudflare challenge detected, waiting...")
+                    time.sleep(3)
+                    continue
+                soup = BeautifulSoup(page_source, "html.parser")
+                lead_containers = soup.find_all("div", class_="bo-list-left")
+                if lead_containers:
+                    return soup, lead_containers
+                time.sleep(1)
+            if attempt < max_retries:
+                print("🔁 Không tìm thấy dữ liệu, tải lại trang để thử lại...")
+                self.driver.get(url)
+                time.sleep(3)
+                self.check_and_close_popup()
+        return BeautifulSoup(self.driver.page_source, "html.parser"), []
+
     def scrape_page(self, page_num):
         """Scrape dữ liệu từ một trang"""
         current_url = f"{self.config['scraping']['base_url']}?page={page_num}"
@@ -242,8 +299,7 @@ class TradewheelScraper:
             
             self.check_and_close_popup()
 
-            soup = BeautifulSoup(self.driver.page_source, "html.parser")
-            lead_containers = soup.find_all("div", class_="bo-list-left")
+            soup, lead_containers = self.wait_for_lead_containers(current_url)
             
             if not lead_containers:
                 print(f"⚠️ Trang {page_num} không có dữ liệu")
