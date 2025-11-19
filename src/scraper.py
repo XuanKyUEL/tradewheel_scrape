@@ -17,6 +17,10 @@ from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service as ChromeService
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from pathlib import Path
 
 class TradewheelScraper:
@@ -199,6 +203,34 @@ class TradewheelScraper:
             print(f"❌ Lỗi thiết lập WebDriver: {e}")
             return False
     
+    def check_and_close_popup(self):
+        """Check for popup and close it if exists"""
+        try:
+            # Wait briefly for popup to potentially appear
+            # The popup id is 'signup_modal' based on the screenshot
+            # The close button is inside it
+            
+            # Using a short timeout because we don't want to wait long if it doesn't appear
+            wait = WebDriverWait(self.driver, 5) 
+            
+            # Check if modal is visible
+            modal = wait.until(EC.visibility_of_element_located((By.ID, "signup_modal")))
+            
+            if modal.is_displayed():
+                print("⚠️ Popup detected, attempting to close...")
+                # Find the close button within the modal
+                close_button = modal.find_element(By.CSS_SELECTOR, "#signup_modal button.close")
+                # Use JavaScript click to ensure it works even if obscured
+                self.driver.execute_script("arguments[0].click();", close_button)
+                print("✅ Popup closed")
+                time.sleep(1) # Wait for animation
+                
+        except (TimeoutException, NoSuchElementException):
+            # Popup didn't appear or couldn't be found, which is fine
+            pass
+        except Exception as e:
+            print(f"⚠️ Error handling popup: {e}")
+
     def scrape_page(self, page_num):
         """Scrape dữ liệu từ một trang"""
         current_url = f"{self.config['scraping']['base_url']}?page={page_num}"
@@ -208,6 +240,8 @@ class TradewheelScraper:
             self.driver.get(current_url)
             time.sleep(3)  # Chờ trang load
             
+            self.check_and_close_popup()
+
             soup = BeautifulSoup(self.driver.page_source, "html.parser")
             lead_containers = soup.find_all("div", class_="bo-list-left")
             
