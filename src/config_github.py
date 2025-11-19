@@ -5,9 +5,9 @@ SCRAPING_CONFIG = {
     "start_page": 1,
     "end_page": 15,
     "base_url": "https://www.tradewheel.com/buyers/",
-    "min_delay": 3,    # Tăng delay cho production
-    "max_delay": 7,    
-    "page_load_timeout": 15,  # Tăng timeout cho server
+    "min_delay": 5,    # Tăng delay để tránh Cloudflare
+    "max_delay": 10,    
+    "page_load_timeout": 30,  # Tăng timeout để chờ Cloudflare
 }
 
 # Cấu hình Chrome cho Linux (GitHub Actions)
