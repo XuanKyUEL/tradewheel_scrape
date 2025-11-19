@@ -233,6 +233,58 @@ class TradewheelScraper:
         except Exception as e:
             print(f"⚠️ Không thể thiết lập stealth mode: {e}")
     
+    def debug_page_content(self, page_num, soup):
+        """Debug page content when no data is found"""
+        print(f"\n🔍 DEBUG INFO for page {page_num}:")
+        
+        # Check current URL
+        print(f"   Current URL: {self.driver.current_url}")
+        
+        # Check page title
+        print(f"   Page Title: {self.driver.title}")
+        
+        # Check for common blocking elements
+        blocking_indicators = [
+            ("Cloudflare", "cf-browser-verification"),
+            ("Captcha", "captcha"),
+            ("Access Denied", "access-denied"),
+            ("Rate Limit", "rate-limit"),
+            ("Error", "error-page")
+        ]
+        
+        for name, class_name in blocking_indicators:
+            if soup.find(class_=class_name) or name.lower() in self.driver.page_source.lower():
+                print(f"   ⚠️ {name} detected!")
+        
+        # Check for alternative container classes
+        alternative_containers = [
+            "bo-list-left",
+            "buyer-list",
+            "lead-item",
+            "rbo-inner",
+            "search-result"
+        ]
+        
+        print(f"\n   Checking alternative containers:")
+        for container_class in alternative_containers:
+            count = len(soup.find_all("div", class_=container_class))
+            if count > 0:
+                print(f"   ✓ Found {count} elements with class '{container_class}'")
+        
+        # Save page source for debugging (first 1000 chars)
+        page_snippet = self.driver.page_source[:1000]
+        print(f"\n   Page source snippet:\n   {page_snippet}...")
+        
+        # Try to save screenshot if possible
+        try:
+            screenshot_path = f"/tmp/page_{page_num}_debug.png"
+            self.driver.save_screenshot(screenshot_path)
+            print(f"   📸 Screenshot saved: {screenshot_path}")
+        except Exception as e:
+            print(f"   ⚠️ Could not save screenshot: {e}")
+        
+        print(f"🔍 END DEBUG INFO\n")
+    
     def check_and_close_popup(self):
         """Check for popup and close it if exists"""
         try:
@@ -299,10 +351,12 @@ class TradewheelScraper:
             
             self.check_and_close_popup()
 
-            soup, lead_containers = self.wait_for_lead_containers(current_url)
+            soup = BeautifulSoup(self.driver.page_source, "html.parser")
+            lead_containers = soup.find_all("div", class_="bo-list-left")
             
             if not lead_containers:
                 print(f"⚠️ Trang {page_num} không có dữ liệu")
+                self.debug_page_content(page_num, soup)
                 return 0
             
             leads_found = 0
